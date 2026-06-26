@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Network - All-in-One Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --primary: #4A90E2;
+            --dark: #2C3E50;
+            --success: #27ae60;
+            --danger: #E64A4A;
+            --warning: #f39c12;
+            --bg: #F4F7F6;
+            --white: #ffffff;
+            --sidebar-width: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--dark); overflow-x: hidden; }
+
+        /* Header */
+        .mobile-header {
+            background: var(--dark); color: white; padding: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1001; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .menu-btn { font-size: 24px; cursor: pointer; color: var(--primary); }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed; left: -100%; top: 0; width: var(--sidebar-width);
+            height: 100%; background: var(--dark); color: white;
+            padding: 20px; z-index: 1002; transition: 0.4s ease;
+        }
+        .sidebar.active { left: 0; }
+        .sidebar h2 { margin-bottom: 30px; text-align: center; color: var(--primary); font-size: 22px; border-bottom: 1px solid #3e5871; padding-bottom: 10px; }
+        
+        .menu-item { padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.3s; color: #ddd; font-size: 14px; }
+        .menu-item.active, .menu-item:hover { background: var(--primary); color: white; }
+
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 1000; }
+        .overlay.active { display: block; }
+
+        /* Main Content */
+        .content { padding: 20px; max-width: 1200px; margin: auto; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .stat-card i { font-size: 25px; color: var(--primary); margin-bottom: 10px; }
+
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .card h3 { margin-bottom: 20px; font-size: 18px; border-left: 5px solid var(--primary); padding-left: 12px; }
+
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+        th { background: #fdfdfd; color: #777; font-weight: 600; text-transform: uppercase; font-size: 11px; }
+
+        /* Form */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #555; }
+        input, select, textarea { width: 100%; padding: 11px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: #fcfcfc; }
+
+        /* Buttons */
+        .btn { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: var(--primary); color: white; width: 100%; justify-content: center; font-size: 14px; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
+
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; }
+        .badge-active { background: #e3f9eb; color: #27ae60; }
+        .badge-inactive { background: #feebeb; color: #e64a4a; }
+
+        .section { display: none; }
+        .section.active { display: block; }
+
+        #loadingToast { position: fixed; bottom: 25px; right: 25px; background: var(--dark); color: white; padding: 12px 25px; border-radius: 50px; font-size: 13px; display: none; z-index: 2000; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-header">
+        <div class="menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+        <div style="font-weight: bold; letter-spacing: 1px;">TASK ADMIN PRO</div>
+        <div id="syncIcon"><i class="fas fa-sync-alt fa-spin"></i></div>
+    </div>
+
+    <!-- Sidebar Menu -->
+    <div class="sidebar" id="sidebar">
+        <h2>Admin Panel</h2>
+        <div class="menu-item active" onclick="showSec('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</div>
+        <div class="menu-item" onclick="showSec('deposits')"><i class="fas fa-money-bill-transfer"></i> Activation Deposits</div>
+        <div class="menu-item" onclick="showSec('withdrawals')"><i class="fas fa-wallet"></i> Withdraw Requests</div>
+        <div class="menu-item" onclick="showSec('users')"><i class="fas fa-users"></i> User Manager</div>
+        <div class="menu-item" onclick="showSec('depSetup')"><i class="fas fa-university"></i> Deposit Setup</div>
+        <div class="menu-item" onclick="showSec('bonusManage')"><i class="fas fa-gift"></i> Manage Bonuses</div>
+        <div class="menu-item" onclick="showSec('payManage')"><i class="fas fa-credit-card"></i> Withdraw Methods</div>
+        <div class="menu-item" onclick="showSec('settings')"><i class="fas fa-cog"></i> App Configuration</div>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="content">
+        
+        <!-- Dashboard Overview -->
+        <div id="dashboard" class="section active">
+            <div class="stats-grid">
+                <div class="stat-card"><i class="fas fa-users"></i><h3 id="statUsers">0</h3><p>Total Users</p></div>
+                <div class="stat-card" style="border-bottom: 3px solid var(--warning);"><i class="fas fa-clock"></i><h3 id="statDepPending">0</h3><p>Pending Dep</p></div>
+                <div class="stat-card" style="border-bottom: 3px solid var(--primary);"><i class="fas fa-hourglass-half"></i><h3 id="statWithPending">0</h3><p>Pending With</p></div>
+                <div class="stat-card"><i class="fas fa-coins"></i><h3 id="statTotalPoints">0</h3><p>System Points</p></div>
+            </div>
+        </div>
+
+        <!-- Pending Deposits (For Activation & Balance) -->
+        <div id="deposits" class="section">
+            <div class="card">
+                <h3>Deposit Requests (Pending)</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr><th>User</th><th>Method</th><th>TK</th><th>TrxID/Sender</th><th>Action</th></tr>
+                        </thead>
+                        <tbody id="depTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Management -->
+        <div id="users" class="section">
+            <div class="card">
+                <h3>All Users</h3>
+                <input type="text" id="userSearch" onkeyup="searchUser()" placeholder="Search by name..." style="margin-bottom:15px;">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr><th>Name/ID</th><th>Points</th><th>Status</th><th>Action</th></tr>
+                        </thead>
+                        <tbody id="userTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Withdraw Requests -->
+        <div id="withdrawals" class="section">
+            <div class="card">
+                <h3>Pending Withdrawals</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr><th>User</th><th>Points</th><th>Method</th><th>Account</th><th>Action</th></tr>
+                        </thead>
+                        <tbody id="withTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deposit Setup (Admin Numbers) -->
+        <div id="depSetup" class="section">
+            <div class="card">
+                <h3>Add Deposit Payment Method</h3>
+                <div class="form-group"><input type="text" id="d_name" placeholder="Method Name (e.g. Bkash)"></div>
+                <div class="form-group"><input type="text" id="d_num" placeholder="Receiver Number"></div>
+                <div class="form-group"><input type="text" id="d_type" placeholder="Account Type (Personal)"></div>
+                <div class="form-group"><input type="number" id="d_min" placeholder="Minimum Deposit TK"></div>
+                <button class="btn btn-primary" onclick="addDepMethod()">Save Deposit Method</button>
+            </div>
+            <div class="card">
+                <h3>Current Deposit Options</h3>
+                <table id="depMethodTable">
+                    <thead><tr><th>Name</th><th>Number</th><th>Min TK</th><th>Action</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- App Configuration (Settings) -->
+        <div id="settings" class="section">
+            <div class="card">
+                <h3>Master App Settings</h3>
+                <div class="form-group" style="background: #e3f9eb; padding: 10px; border-radius: 8px;">
+                    <label style="color: var(--success);">Points Per 1 TK (ডিপোজিট পয়েন্ট কনভার্সন)</label>
+                    <input type="number" id="c_pts_tk" placeholder="১ টাকা = কত পয়েন্ট? (e.g. 100)">
+                </div>
+                <div class="form-group"><label>App Name</label><input type="text" id="c_name"></div>
+                <div class="form-group"><label>Monetag Ad ID (Zone ID)</label><input type="text" id="c_monetag"></div>
+                <div class="form-group"><label>Daily Ad Watch Limit</label><input type="number" id="c_limit"></div>
+                <div class="form-group"><label>Points Per Ad View</label><input type="number" id="c_pts_ad"></div>
+                <div class="form-group"><label>Minimum Withdraw Points</label><input type="number" id="c_min_with"></div>
+                <div class="form-group"><label>Referral Bonus (Referrer)</label><input type="number" id="c_rb_r"></div>
+                <div class="form-group"><label>Referral Bonus (Referee/New User)</label><input type="number" id="c_rb_e"></div>
+                <div class="form-group"><label>Referral Bot Link</label><input type="text" id="c_bot"></div>
+                <div class="form-group"><label>Official Channel</label><input type="text" id="c_channel"></div>
+                <div class="form-group"><label>Support Group</label><input type="text" id="c_support"></div>
+                <div class="form-group"><label>Home Announcement</label><textarea id="c_msg" rows="3"></textarea></div>
+                <button class="btn btn-primary" onclick="saveConfig()">Update App Configuration</button>
+            </div>
+        </div>
+
+        <!-- Withdrawal Methods Manager -->
+        <div id="payManage" class="section">
+            <div class="card">
+                <h3>Manage Withdrawal Methods</h3>
+                <input type="text" id="w_meth_name" placeholder="Method Name (e.g. Bkash Personal)">
+                <button class="btn btn-primary" style="margin-top:10px" onclick="addWithMethod()">Add Option</button>
+            </div>
+            <div class="card">
+                <h3>Active Withdrawal Methods</h3>
+                <table id="withMethodTable"><tbody></tbody></table>
+            </div>
+        </div>
+
+        <!-- Bonus Tasks Manager -->
+        <div id="bonusManage" class="section">
+            <div class="card">
+                <h3>Add Bonus Task</h3>
+                <div class="form-group"><input type="text" id="b_name" placeholder="Task Name"></div>
+                <div class="form-group"><input type="number" id="b_pts" placeholder="Reward Points"></div>
+                <div class="form-group"><input type="text" id="b_link" placeholder="Task Link"></div>
+                <button class="btn btn-primary" onclick="addBonus()">Add Bonus Task</button>
+            </div>
+            <div class="card">
+                <h3>Bonus Tasks List</h3>
+                <table id="bonusListTable"><tbody></tbody></table>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="loadingToast">Processing...</div>
+
+    <script>
+        // --- Firebase Config (Updated from User Panel) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCdalQEUuxHGb8258dXDIDQ8U503vHNKhA",
+            authDomain: "monetagbot22.firebaseapp.com",
+            databaseURL: "https://monetagbot22-default-rtdb.firebaseio.com",
+            projectId: "monetagbot22",
+            storageBucket: "monetagbot22.firebasestorage.app",
+            messagingSenderId: "105315208537",
+            appId: "1:105315208537:web:365efc870e8af7ea455048"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // --- Core UI Logic ---
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
+        function showSec(id) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); if(window.innerWidth < 768) toggleSidebar(); }
+        function toast(msg) { const t = document.getElementById('loadingToast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+
+        // --- Initialize Data ---
+        function initAdmin() {
+            // Stats & User Listeners
+            db.ref('users').on('value', snap => {
+                const data = snap.val();
+                let uCount = 0, ptsSystem = 0, uHtml = '';
+                for(let id in data) {
+                    uCount++; ptsSystem += (data[id].points || 0);
+                    let actStatus = data[id].isActivated ? '<span class="badge badge-active">Activated</span>' : '<span class="badge badge-inactive">Inactive</span>';
+                    let blockBadge = data[id].isBlocked ? '<br><small style="color:red; font-weight:bold;">[BLOCKED]</small>' : '';
+                    uHtml += `<tr><td>${data[id].name}${blockBadge}</td><td>${data[id].points}</td><td>${actStatus}</td><td>
+                        <button class="btn btn-success btn-sm" onclick="editPts('${id}', ${data[id].points})">Pts</button>
+                        <button class="btn btn-warning btn-sm" onclick="toggleBlock('${id}', ${data[id].isBlocked})">Block</button>
+                        <button class="btn btn-danger btn-sm" onclick="delUser('${id}')">Del</button>
+                    </td></tr>`;
+                }
+                document.getElementById('statUsers').innerText = uCount;
+                document.getElementById('statTotalPoints').innerText = ptsSystem;
+                document.getElementById('userTableBody').innerHTML = uHtml;
+                document.getElementById('syncIcon').innerHTML = '<i class="fas fa-check-circle" style="color:#27ae60"></i>';
+            });
+
+            // Pending Deposits
+            db.ref('deposits').on('value', snap => {
+                const data = snap.val();
+                let dcount = 0, dHtml = '';
+                for(let id in data) {
+                    if(data[id].status === "Pending") {
+                        dcount++;
+                        dHtml += `<tr><td>${data[id].name}</td><td>${data[id].method}</td><td>${data[id].amount} TK</td><td>${data[id].senderNumber}<br>${data[id].transactionId}</td><td>
+                            <button class="btn btn-success btn-sm" onclick="approveDep('${id}', '${data[id].userId}', ${data[id].amount})">Approve</button>
+                        </td></tr>`;
+                    }
+                }
+                document.getElementById('statDepPending').innerText = dcount;
+                document.getElementById('depTableBody').innerHTML = dHtml;
+            });
+
+            // Pending Withdrawals
+            db.ref('withdrawals').on('value', snap => {
+                const data = snap.val();
+                let wcount = 0, wHtml = '';
+                for(let id in data) {
+                    if(data[id].status === "Pending") {
+                        wcount++;
+                        wHtml += `<tr><td>${data[id].name}</td><td>${data[id].amount}</td><td>${data[id].method}</td><td>${data[id].account}</td><td><button class="btn btn-success btn-sm" onclick="payWith('${id}')">Paid</button></td></tr>`;
+                    }
+                }
+                document.getElementById('statWithPending').innerText = wcount;
+                document.getElementById('withTableBody').innerHTML = wHtml;
+            });
+
+            // Load Configuration
+            db.ref('settings').on('value', snap => {
+                const s = snap.val();
+                if(s) {
+                    document.getElementById('c_name').value = s.appName || "";
+                    document.getElementById('c_pts_tk').value = s.pointsPerTaka || 100;
+                    document.getElementById('c_monetag').value = s.monetagId || "";
+                    document.getElementById('c_limit').value = s.adsPerDayLimit || 0;
+                    document.getElementById('c_pts_ad').value = s.pointsPerAd || 0;
+                    document.getElementById('c_min_with').value = s.minWithdrawPoints || 0;
+                    document.getElementById('c_rb_r').value = s.refBonusReferrer || 0;
+                    document.getElementById('c_rb_e').value = s.refBonusReferee || 0;
+                    document.getElementById('c_bot').value = s.referralBotLink || "";
+                    document.getElementById('c_channel').value = s.officialChannel || "";
+                    document.getElementById('c_support').value = s.supportGroup || "";
+                    document.getElementById('c_msg').value = s.homeMsg || "";
+                    
+                    renderDepMethods(s.depositMethodList);
+                    renderWithMethods(s.paymentMethods);
+                    renderBonusList(s.bonusList);
+                }
+            });
+        }
+
+        // --- Core Functions ---
+        function saveConfig() {
+            const data = {
+                appName: document.getElementById('c_name').value,
+                pointsPerTaka: parseInt(document.getElementById('c_pts_tk').value),
+                monetagId: document.getElementById('c_monetag').value,
+                adsPerDayLimit: parseInt(document.getElementById('c_limit').value),
+                pointsPerAd: parseInt(document.getElementById('c_pts_ad').value),
+                minWithdrawPoints: parseInt(document.getElementById('c_min_with').value),
+                refBonusReferrer: parseInt(document.getElementById('c_rb_r').value),
+                refBonusReferee: parseInt(document.getElementById('c_rb_e').value),
+                referralBotLink: document.getElementById('c_bot').value,
+                officialChannel: document.getElementById('c_channel').value,
+                supportGroup: document.getElementById('c_support').value,
+                homeMsg: document.getElementById('c_msg').value
+            };
+            db.ref('settings').update(data).then(() => toast("Configuration Updated!"));
+        }
+
+        function approveDep(depId, uid, tkAmount) {
+            if(!confirm("Approve this deposit? Account will be activated and points will be added.")) return;
+            
+            db.ref('settings/pointsPerTaka').once('value', snap => {
+                const rate = snap.val() || 100;
+                const pointsToAdd = tkAmount * rate;
+
+                db.ref('users/' + uid).once('value', uSnap => {
+                    const currentPoints = uSnap.val().points || 0;
+                    
+                    const updates = {};
+                    updates['deposits/' + depId + '/status'] = "Approved";
+                    updates['users/' + uid + '/isActivated'] = true;
+                    updates['users/' + uid + '/points'] = currentPoints + pointsToAdd;
+                    
+                    db.ref().update(updates).then(() => toast(`${pointsToAdd} points added to user balance.`));
+                });
+            });
+        }
+
+        function addDepMethod() {
+            const name = document.getElementById('d_name').value, num = document.getElementById('d_num').value, type = document.getElementById('d_type').value, min = document.getElementById('d_min').value;
+            if(!name || !num) return alert("Fill Name and Number!");
+            db.ref('settings/depositMethodList').once('value', snap => {
+                let list = snap.val() || [];
+                list.push({name, number: num, type, minAmount: parseInt(min)});
+                db.ref('settings/depositMethodList').set(list).then(() => { toast("Method Added"); document.getElementById('d_name').value = ''; document.getElementById('d_num').value = ''; });
+            });
+        }
+
+        function renderDepMethods(list) {
+            let h = ''; (list || []).forEach((m, i) => h += `<tr><td>${m.name}</td><td>${m.number}</td><td>${m.minAmount}</td><td><button class="btn btn-danger btn-sm" onclick="delListItem('depositMethodList', ${i})">X</button></td></tr>`);
+            document.querySelector('#depMethodTable tbody').innerHTML = h;
+        }
+
+        function renderWithMethods(list) {
+            let h = ''; (list || []).forEach((m, i) => h += `<tr><td>${m}</td><td><button class="btn btn-danger btn-sm" onclick="delListItem('paymentMethods', ${i})">Delete</button></td></tr>`);
+            document.querySelector('#withMethodTable tbody').innerHTML = h;
+        }
+
+        function renderBonusList(list) {
+            let h = ''; (list || []).forEach((m, i) => h += `<tr><td>${m.name}</td><td>${m.reward}</td><td><button class="btn btn-danger btn-sm" onclick="delListItem('bonusList', ${i})">Delete</button></td></tr>`);
+            document.querySelector('#bonusListTable tbody').innerHTML = h;
+        }
+
+        function delListItem(path, index) { db.ref('settings/'+path).once('value', snap => { let list = snap.val(); list.splice(index, 1); db.ref('settings/'+path).set(list); }); }
+        function addWithMethod() { let n = document.getElementById('w_meth_name').value; db.ref('settings/paymentMethods').once('value', snap => { let list = snap.val() || []; list.push(n); db.ref('settings/paymentMethods').set(list).then(() => document.getElementById('w_meth_name').value = ''); }); }
+        function addBonus() { let n = document.getElementById('b_name').value, r = parseInt(document.getElementById('b_pts').value), l = document.getElementById('b_link').value; db.ref('settings/bonusList').once('value', snap => { let list = snap.val() || []; list.push({id: 'b'+Date.now(), name: n, reward: r, link: l, icon: 'fas fa-gift'}); db.ref('settings/bonusList').set(list); }); }
+        function payWith(id) { db.ref('withdrawals/'+id).update({status: "Paid"}); }
+        function editPts(id, cur) { let p = prompt("New points:", cur); if(p) db.ref('users/'+id).update({points: parseInt(p)}); }
+        function toggleBlock(id, st) { db.ref('users/'+id).update({isBlocked: !st}); }
+        function delUser(id) { if(confirm("Delete User?")) db.ref('users/'+id).remove(); }
+        function searchUser() { let val = document.getElementById('userSearch').value.toLowerCase(); document.querySelectorAll('#userTableBody tr').forEach(tr => tr.style.display = tr.innerText.toLowerCase().includes(val) ? '' : 'none'); }
+
+        window.onload = initAdmin;
+    </script>
+</body>
+</html>
