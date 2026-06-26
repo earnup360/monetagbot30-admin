@@ -116,7 +116,7 @@
                 <div class="stat-card"><i class="fas fa-users"></i><h3 id="statUsers">0</h3><p>Total Users</p></div>
                 <div class="stat-card" style="border-bottom: 3px solid var(--warning);"><i class="fas fa-clock"></i><h3 id="statDepPending">0</h3><p>Pending Dep</p></div>
                 <div class="stat-card" style="border-bottom: 3px solid var(--primary);"><i class="fas fa-hourglass-half"></i><h3 id="statWithPending">0</h3><p>Pending With</p></div>
-                <div class="stat-card"><i class="fas fa-coins"></i><h3 id="statTotalPoints">0</h3><p>System Points</p></div>
+                <div class="stat-card"><i class="fas fa-coins"></i><h3>৳ <span id="statTotalPoints">0.00</span></h3><p>Total Balance (TK)</p></div>
             </div>
         </div>
 
@@ -127,7 +127,7 @@
                 <div class="table-responsive">
                     <table>
                         <thead>
-                            <tr><th>User</th><th>Method</th><th>TK</th><th>TrxID/Sender</th><th>Action</th></tr>
+                            <tr><th>User</th><th>Method</th><th>Amount</th><th>TrxID/Sender</th><th>Action</th></tr>
                         </thead>
                         <tbody id="depTableBody"></tbody>
                     </table>
@@ -143,7 +143,7 @@
                 <div class="table-responsive">
                     <table>
                         <thead>
-                            <tr><th>Name/ID</th><th>Points</th><th>Status</th><th>Action</th></tr>
+                            <tr><th>Name/ID</th><th>Balance (TK)</th><th>Status</th><th>Action</th></tr>
                         </thead>
                         <tbody id="userTableBody"></tbody>
                     </table>
@@ -158,7 +158,7 @@
                 <div class="table-responsive">
                     <table>
                         <thead>
-                            <tr><th>User</th><th>Points</th><th>Method</th><th>Account</th><th>Action</th></tr>
+                            <tr><th>User</th><th>Amount (TK)</th><th>Method</th><th>Account</th><th>Action</th></tr>
                         </thead>
                         <tbody id="withTableBody"></tbody>
                     </table>
@@ -173,7 +173,7 @@
                 <div class="form-group"><input type="text" id="d_name" placeholder="Method Name (e.g. Bkash)"></div>
                 <div class="form-group"><input type="text" id="d_num" placeholder="Receiver Number"></div>
                 <div class="form-group"><input type="text" id="d_type" placeholder="Account Type (Personal)"></div>
-                <div class="form-group"><input type="number" id="d_min" placeholder="Minimum Deposit TK"></div>
+                <div class="form-group"><input type="number" step="any" id="d_min" placeholder="Minimum Deposit TK"></div>
                 <button class="btn btn-primary" onclick="addDepMethod()">Save Deposit Method</button>
             </div>
             <div class="card">
@@ -190,17 +190,17 @@
             <div class="card">
                 <h3>Master App Settings</h3>
                 <div class="form-group" style="background: #e3f9eb; padding: 10px; border-radius: 8px;">
-                    <label style="color: var(--success);">Points Per 1 TK (ডিপোজিট পয়েন্ট কনভার্সন)</label>
-                    <input type="number" id="c_pts_tk" placeholder="১ টাকা = কত পয়েন্ট? (e.g. 100)">
+                    <label style="color: var(--success);">ডিপোজিট ব্যালেন্স কনভার্সন (১ টাকা ডিপোজিটে কত টাকা ব্যালেন্সে যাবে?)</label>
+                    <input type="number" step="any" id="c_pts_tk" placeholder="সাধারণত 1 দিন (e.g. 1)">
                 </div>
                 <div class="form-group"><label>App Name</label><input type="text" id="c_name"></div>
                 <div class="form-group"><label>Monetag Ad ID (Zone ID)</label><input type="text" id="c_monetag"></div>
                 <div class="form-group"><label>Daily Ad Watch Limit</label><input type="number" id="c_limit"></div>
-                <div class="form-group"><label>Points Per Ad View</label><input type="number" id="c_pts_ad"></div>
-                <div class="form-group"><label>Minimum Withdraw Points</label><input type="number" id="c_min_with"></div>
-                <div class="form-group"><label>Referral Bonus (Referrer)</label><input type="number" id="c_rb_r"></div>
-                <div class="form-group"><label>Referral Bonus (Referee/New User)</label><input type="number" id="c_rb_e"></div>
-                <div class="form-group"><label>Referral Bot Link</label><input type="text" id="c_bot"></div>
+                <div class="form-group"><label>Taka (TK) Per Ad View</label><input type="number" step="any" id="c_pts_ad" placeholder="e.g. 0.5"></div>
+                <div class="form-group"><label>Minimum Withdraw Amount (TK)</label><input type="number" step="any" id="c_min_with" placeholder="e.g. 10"></div>
+                <div class="form-group"><label>Referral Bonus (Referrer) - TK</label><input type="number" step="any" id="c_rb_r" placeholder="e.g. 2.5"></div>
+                <div class="form-group"><label>Referral Bonus (Referee/New User) - TK</label><input type="number" step="any" id="c_rb_e" placeholder="e.g. 1.0"></div>
+                <!-- Referral Bot Link Removed from here -->
                 <div class="form-group"><label>Official Channel</label><input type="text" id="c_channel"></div>
                 <div class="form-group"><label>Support Group</label><input type="text" id="c_support"></div>
                 <div class="form-group"><label>Home Announcement</label><textarea id="c_msg" rows="3"></textarea></div>
@@ -226,7 +226,7 @@
             <div class="card">
                 <h3>Add Bonus Task</h3>
                 <div class="form-group"><input type="text" id="b_name" placeholder="Task Name"></div>
-                <div class="form-group"><input type="number" id="b_pts" placeholder="Reward Points"></div>
+                <div class="form-group"><input type="number" step="any" id="b_pts" placeholder="Reward Amount (TK)"></div>
                 <div class="form-group"><input type="text" id="b_link" placeholder="Task Link"></div>
                 <button class="btn btn-primary" onclick="addBonus()">Add Bonus Task</button>
             </div>
@@ -241,7 +241,7 @@
     <div id="loadingToast">Processing...</div>
 
     <script>
-        // --- Firebase Config (Updated from User Panel) ---
+        // --- Firebase Config ---
         const firebaseConfig = {
   apiKey: "AIzaSyBY59pCik8WXs1WArUlvFIoFHSD_MXcvKs",
   authDomain: "monetag30-63d8f.firebaseapp.com",
@@ -266,17 +266,21 @@
                 const data = snap.val();
                 let uCount = 0, ptsSystem = 0, uHtml = '';
                 for(let id in data) {
-                    uCount++; ptsSystem += (data[id].points || 0);
+                    uCount++; 
+                    let currentBal = parseFloat(data[id].points || 0);
+                    ptsSystem += currentBal;
+                    
                     let actStatus = data[id].isActivated ? '<span class="badge badge-active">Activated</span>' : '<span class="badge badge-inactive">Inactive</span>';
                     let blockBadge = data[id].isBlocked ? '<br><small style="color:red; font-weight:bold;">[BLOCKED]</small>' : '';
-                    uHtml += `<tr><td>${data[id].name}${blockBadge}</td><td>${data[id].points}</td><td>${actStatus}</td><td>
-                        <button class="btn btn-success btn-sm" onclick="editPts('${id}', ${data[id].points})">Pts</button>
+                    
+                    uHtml += `<tr><td>${data[id].name}${blockBadge}</td><td>৳ ${currentBal.toFixed(2)}</td><td>${actStatus}</td><td>
+                        <button class="btn btn-success btn-sm" onclick="editPts('${id}', ${currentBal})">Bal</button>
                         <button class="btn btn-warning btn-sm" onclick="toggleBlock('${id}', ${data[id].isBlocked})">Block</button>
                         <button class="btn btn-danger btn-sm" onclick="delUser('${id}')">Del</button>
                     </td></tr>`;
                 }
                 document.getElementById('statUsers').innerText = uCount;
-                document.getElementById('statTotalPoints').innerText = ptsSystem;
+                document.getElementById('statTotalPoints').innerText = ptsSystem.toFixed(2);
                 document.getElementById('userTableBody').innerHTML = uHtml;
                 document.getElementById('syncIcon').innerHTML = '<i class="fas fa-check-circle" style="color:#27ae60"></i>';
             });
@@ -288,7 +292,7 @@
                 for(let id in data) {
                     if(data[id].status === "Pending") {
                         dcount++;
-                        dHtml += `<tr><td>${data[id].name}</td><td>${data[id].method}</td><td>${data[id].amount} TK</td><td>${data[id].senderNumber}<br>${data[id].transactionId}</td><td>
+                        dHtml += `<tr><td>${data[id].name}</td><td>${data[id].method}</td><td>৳ ${parseFloat(data[id].amount || 0).toFixed(2)}</td><td>${data[id].senderNumber}<br>${data[id].transactionId}</td><td>
                             <button class="btn btn-success btn-sm" onclick="approveDep('${id}', '${data[id].userId}', ${data[id].amount})">Approve</button>
                         </td></tr>`;
                     }
@@ -304,7 +308,7 @@
                 for(let id in data) {
                     if(data[id].status === "Pending") {
                         wcount++;
-                        wHtml += `<tr><td>${data[id].name}</td><td>${data[id].amount}</td><td>${data[id].method}</td><td>${data[id].account}</td><td><button class="btn btn-success btn-sm" onclick="payWith('${id}')">Paid</button></td></tr>`;
+                        wHtml += `<tr><td>${data[id].name}</td><td>৳ ${parseFloat(data[id].amount || 0).toFixed(2)}</td><td>${data[id].method}</td><td>${data[id].account}</td><td><button class="btn btn-success btn-sm" onclick="payWith('${id}')">Paid</button></td></tr>`;
                     }
                 }
                 document.getElementById('statWithPending').innerText = wcount;
@@ -316,14 +320,13 @@
                 const s = snap.val();
                 if(s) {
                     document.getElementById('c_name').value = s.appName || "";
-                    document.getElementById('c_pts_tk').value = s.pointsPerTaka || 100;
+                    document.getElementById('c_pts_tk').value = s.pointsPerTaka || 1; 
                     document.getElementById('c_monetag').value = s.monetagId || "";
                     document.getElementById('c_limit').value = s.adsPerDayLimit || 0;
                     document.getElementById('c_pts_ad').value = s.pointsPerAd || 0;
                     document.getElementById('c_min_with').value = s.minWithdrawPoints || 0;
                     document.getElementById('c_rb_r').value = s.refBonusReferrer || 0;
                     document.getElementById('c_rb_e').value = s.refBonusReferee || 0;
-                    document.getElementById('c_bot').value = s.referralBotLink || "";
                     document.getElementById('c_channel').value = s.officialChannel || "";
                     document.getElementById('c_support').value = s.supportGroup || "";
                     document.getElementById('c_msg').value = s.homeMsg || "";
@@ -339,14 +342,13 @@
         function saveConfig() {
             const data = {
                 appName: document.getElementById('c_name').value,
-                pointsPerTaka: parseInt(document.getElementById('c_pts_tk').value),
+                pointsPerTaka: parseFloat(document.getElementById('c_pts_tk').value),
                 monetagId: document.getElementById('c_monetag').value,
                 adsPerDayLimit: parseInt(document.getElementById('c_limit').value),
-                pointsPerAd: parseInt(document.getElementById('c_pts_ad').value),
-                minWithdrawPoints: parseInt(document.getElementById('c_min_with').value),
-                refBonusReferrer: parseInt(document.getElementById('c_rb_r').value),
-                refBonusReferee: parseInt(document.getElementById('c_rb_e').value),
-                referralBotLink: document.getElementById('c_bot').value,
+                pointsPerAd: parseFloat(document.getElementById('c_pts_ad').value),
+                minWithdrawPoints: parseFloat(document.getElementById('c_min_with').value),
+                refBonusReferrer: parseFloat(document.getElementById('c_rb_r').value),
+                refBonusReferee: parseFloat(document.getElementById('c_rb_e').value),
                 officialChannel: document.getElementById('c_channel').value,
                 supportGroup: document.getElementById('c_support').value,
                 homeMsg: document.getElementById('c_msg').value
@@ -355,21 +357,21 @@
         }
 
         function approveDep(depId, uid, tkAmount) {
-            if(!confirm("Approve this deposit? Account will be activated and points will be added.")) return;
+            if(!confirm("Approve this deposit? Account will be activated and balance will be added.")) return;
             
             db.ref('settings/pointsPerTaka').once('value', snap => {
-                const rate = snap.val() || 100;
-                const pointsToAdd = tkAmount * rate;
+                const rate = parseFloat(snap.val() || 1);
+                const amountToAdd = parseFloat(tkAmount) * rate;
 
                 db.ref('users/' + uid).once('value', uSnap => {
-                    const currentPoints = uSnap.val().points || 0;
+                    const currentPoints = parseFloat(uSnap.val().points || 0);
                     
                     const updates = {};
                     updates['deposits/' + depId + '/status'] = "Approved";
                     updates['users/' + uid + '/isActivated'] = true;
-                    updates['users/' + uid + '/points'] = currentPoints + pointsToAdd;
+                    updates['users/' + uid + '/points'] = currentPoints + amountToAdd; // DB key remains 'points' for compatibility
                     
-                    db.ref().update(updates).then(() => toast(`${pointsToAdd} points added to user balance.`));
+                    db.ref().update(updates).then(() => toast(`৳ ${amountToAdd.toFixed(2)} added to user balance.`));
                 });
             });
         }
@@ -379,13 +381,13 @@
             if(!name || !num) return alert("Fill Name and Number!");
             db.ref('settings/depositMethodList').once('value', snap => {
                 let list = snap.val() || [];
-                list.push({name, number: num, type, minAmount: parseInt(min)});
+                list.push({name, number: num, type, minAmount: parseFloat(min)});
                 db.ref('settings/depositMethodList').set(list).then(() => { toast("Method Added"); document.getElementById('d_name').value = ''; document.getElementById('d_num').value = ''; });
             });
         }
 
         function renderDepMethods(list) {
-            let h = ''; (list || []).forEach((m, i) => h += `<tr><td>${m.name}</td><td>${m.number}</td><td>${m.minAmount}</td><td><button class="btn btn-danger btn-sm" onclick="delListItem('depositMethodList', ${i})">X</button></td></tr>`);
+            let h = ''; (list || []).forEach((m, i) => h += `<tr><td>${m.name}</td><td>${m.number}</td><td>৳ ${m.minAmount}</td><td><button class="btn btn-danger btn-sm" onclick="delListItem('depositMethodList', ${i})">X</button></td></tr>`);
             document.querySelector('#depMethodTable tbody').innerHTML = h;
         }
 
@@ -395,17 +397,24 @@
         }
 
         function renderBonusList(list) {
-            let h = ''; (list || []).forEach((m, i) => h += `<tr><td>${m.name}</td><td>${m.reward}</td><td><button class="btn btn-danger btn-sm" onclick="delListItem('bonusList', ${i})">Delete</button></td></tr>`);
+            let h = ''; (list || []).forEach((m, i) => h += `<tr><td>${m.name}</td><td>৳ ${parseFloat(m.reward).toFixed(2)}</td><td><button class="btn btn-danger btn-sm" onclick="delListItem('bonusList', ${i})">Delete</button></td></tr>`);
             document.querySelector('#bonusListTable tbody').innerHTML = h;
         }
 
         function delListItem(path, index) { db.ref('settings/'+path).once('value', snap => { let list = snap.val(); list.splice(index, 1); db.ref('settings/'+path).set(list); }); }
+        
         function addWithMethod() { let n = document.getElementById('w_meth_name').value; db.ref('settings/paymentMethods').once('value', snap => { let list = snap.val() || []; list.push(n); db.ref('settings/paymentMethods').set(list).then(() => document.getElementById('w_meth_name').value = ''); }); }
-        function addBonus() { let n = document.getElementById('b_name').value, r = parseInt(document.getElementById('b_pts').value), l = document.getElementById('b_link').value; db.ref('settings/bonusList').once('value', snap => { let list = snap.val() || []; list.push({id: 'b'+Date.now(), name: n, reward: r, link: l, icon: 'fas fa-gift'}); db.ref('settings/bonusList').set(list); }); }
+        
+        function addBonus() { let n = document.getElementById('b_name').value, r = parseFloat(document.getElementById('b_pts').value), l = document.getElementById('b_link').value; db.ref('settings/bonusList').once('value', snap => { let list = snap.val() || []; list.push({id: 'b'+Date.now(), name: n, reward: r, link: l, icon: 'fas fa-gift'}); db.ref('settings/bonusList').set(list); }); }
+        
         function payWith(id) { db.ref('withdrawals/'+id).update({status: "Paid"}); }
-        function editPts(id, cur) { let p = prompt("New points:", cur); if(p) db.ref('users/'+id).update({points: parseInt(p)}); }
+        
+        function editPts(id, cur) { let p = prompt("New Balance (TK):", cur); if(p) db.ref('users/'+id).update({points: parseFloat(p)}); }
+        
         function toggleBlock(id, st) { db.ref('users/'+id).update({isBlocked: !st}); }
+        
         function delUser(id) { if(confirm("Delete User?")) db.ref('users/'+id).remove(); }
+        
         function searchUser() { let val = document.getElementById('userSearch').value.toLowerCase(); document.querySelectorAll('#userTableBody tr').forEach(tr => tr.style.display = tr.innerText.toLowerCase().includes(val) ? '' : 'none'); }
 
         window.onload = initAdmin;
